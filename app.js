@@ -1,7 +1,6 @@
-
 /* ============================================================
-   Club CARIBE Montería — app.js corregido
-   Validaciones completas + Google Sheets + Power Automate + PDF
+   Club CARIBE Montería — app.js final
+   Google Sheets + Power Automate + Validaciones
 ============================================================ */
 
 const GOOGLE_SCRIPT_URL =
@@ -12,7 +11,7 @@ const POWER_AUTOMATE_URL =
 
 
 /* ============================================================
-   VALIDACIÓN DEL FORMULARIO
+VALIDAR FORMULARIO
 ============================================================ */
 
 function validateForm(){
@@ -70,7 +69,7 @@ function validateForm(){
 
 
 /* ============================================================
-   OBTENER DATOS DEL FORMULARIO
+OBTENER DATOS FORMULARIO
 ============================================================ */
 
 function getFormData(form){
@@ -88,23 +87,19 @@ function getFormData(form){
 
 
 /* ============================================================
-   TIMESTAMP REGISTRO
+TIMESTAMP
 ============================================================ */
 
 function getTimestamp(){
 
   const now = new Date();
-
-  const fecha = now.toLocaleDateString("es-CO");
-  const hora  = now.toLocaleTimeString("es-CO");
-
-  return `${fecha} ${hora}`;
+  return now.toLocaleString("es-CO");
 
 }
 
 
 /* ============================================================
-   VERIFICAR DUPLICADO
+VERIFICAR DUPLICADO EN SHEETS
 ============================================================ */
 
 async function checkDuplicate(tipo,id){
@@ -115,46 +110,34 @@ async function checkDuplicate(tipo,id){
     id:id
   });
 
-  const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-
-  try{
-
-    const response = await fetch(url);
-    return await response.json();
-
-  }
-  catch(error){
-
-    console.warn("No se pudo validar duplicado",error);
-    return null;
-
-  }
-
-}
-
-
-/* ============================================================
-   GUARDAR EN GOOGLE SHEETS
-============================================================ */
-
-async function saveToSheets(data){
-
-  const params = new URLSearchParams();
-
-  params.append("action","save");
-  params.append("data",JSON.stringify(data));
-
   const url = GOOGLE_SCRIPT_URL + "?" + params.toString();
 
   const response = await fetch(url);
-
   return await response.json();
 
 }
 
 
 /* ============================================================
-   POWER AUTOMATE
+GUARDAR EN GOOGLE SHEETS
+============================================================ */
+
+async function saveToSheets(data){
+
+  const params = new URLSearchParams();
+  params.append("action","save");
+  params.append("data",JSON.stringify(data));
+
+  const url = GOOGLE_SCRIPT_URL + "?" + params.toString();
+
+  const response = await fetch(url);
+  return await response.json();
+
+}
+
+
+/* ============================================================
+ENVIAR A POWER AUTOMATE
 ============================================================ */
 
 async function sendToPowerAutomate(data){
@@ -180,43 +163,7 @@ async function sendToPowerAutomate(data){
 
 
 /* ============================================================
-   GENERAR PDF
-============================================================ */
-
-function generatePDF(data){
-
-  const { jsPDF } = window.jspdf;
-
-  const doc = new jsPDF();
-
-  doc.setFontSize(16);
-  doc.text("Club Caribe Béisbol Montería",20,20);
-
-  doc.setFontSize(12);
-  doc.text(`Fecha registro: ${data.fecha_registro}`,20,30);
-
-  let y = 40;
-
-  for(const key in data){
-
-    doc.text(`${key}: ${data[key]}`,20,y);
-
-    y += 7;
-
-    if(y > 280){
-      doc.addPage();
-      y = 20;
-    }
-
-  }
-
-  doc.save("inscripcion_club_caribe.pdf");
-
-}
-
-
-/* ============================================================
-   ENVÍO FORMULARIO
+ENVÍO FORMULARIO
 ============================================================ */
 
 async function handleSubmit(e){
@@ -242,11 +189,12 @@ async function handleSubmit(e){
 
   data.fecha_registro = getTimestamp();
 
-  const tipo = data.tipo_documento;
-  const id   = data.identificacion;
+  /* VALIDAR DUPLICADO */
 
-
-  const duplicado = await checkDuplicate(tipo,id);
+  const duplicado = await checkDuplicate(
+    data.tipo_documento,
+    data.identificacion
+  );
 
   if(duplicado && duplicado.exists){
 
@@ -255,20 +203,20 @@ async function handleSubmit(e){
 
   }
 
+  /* GUARDAR EN SHEETS */
 
   const save = await saveToSheets(data);
 
   if(!save.success){
 
-    alert("Error guardando la información en la base de datos");
+    alert("Error guardando en la base de datos");
     return;
 
   }
 
+  /* ENVIAR A POWER AUTOMATE */
 
   sendToPowerAutomate(data);
-
-  generatePDF(data);
 
   alert("Registro guardado correctamente");
 
@@ -278,7 +226,7 @@ async function handleSubmit(e){
 
 
 /* ============================================================
-   INICIALIZACIÓN CORREGIDA
+INICIALIZACIÓN
 ============================================================ */
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -286,7 +234,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   const form = document.getElementById("formInscripcion");
 
   if(!form){
-    console.error("Formulario no encontrado. Verifique que el form tenga id='formInscripcion'");
+    console.error("Formulario no encontrado");
     return;
   }
 
