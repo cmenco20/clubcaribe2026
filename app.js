@@ -51,6 +51,24 @@ async function checkDuplicate(tipo, id) {
 
 }
 
+
+/* ============================================================
+  HORARIO TIMESTAMP 
+============================================================ */
+
+
+function getTimestamp(){
+
+  const now = new Date();
+
+  const fecha = now.toLocaleDateString("es-CO");
+  const hora  = now.toLocaleTimeString("es-CO");
+
+  return `${fecha} ${hora}`;
+
+}
+
+
 /* ============================================================
    GUARDAR EN GOOGLE SHEETS
 ============================================================ */
@@ -108,11 +126,12 @@ async function sendToPowerAutomate(data) {
 
 function generatePDF(data){
 
+  doc.text(`Fecha registro: ${data.fecha_registro}`,20,30);
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
   doc.setFontSize(16);
-  doc.text("Club Caribe Montería", 20,20);
+  doc.text("Club Caribe Beisbol - Montería", 20,20);
 
   doc.setFontSize(12);
 
@@ -138,10 +157,13 @@ async function handleSubmit(e){
   e.preventDefault();
 
   const form = e.target;
+
   const data = getFormData(form);
+  data.fecha_registro = getTimestamp();
 
   const tipo = data.tipo_documento;
   const id   = data.identificacion;
+  
 
   /* ---- validar duplicado ---- */
 
