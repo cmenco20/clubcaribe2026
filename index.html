@@ -484,13 +484,13 @@
 
 <main>
 
-  <!-- SETUP BOX -->
+  <!-- SETUP BOX --> <!--
   <div class="setup-box">
     <strong>⚙️ Configuración OneDrive</strong> — Para enviar datos automáticamente, usa <strong>Microsoft Power Automate</strong>:<br>
     1. Ve a <a href="https://make.powerautomate.com" target="_blank">make.powerautomate.com</a> → Crear flujo → <strong>"Cuando se recibe una solicitud HTTP"</strong><br>
     2. Agrega la acción <strong>"Agregar fila a tabla Excel"</strong> apuntando a un archivo <code>.xlsx</code> en tu OneDrive.<br>
     3. Copia la URL HTTP POST y pégala en la variable <code>POWER_AUTOMATE_URL</code> del código.
-  </div>
+  </div>--> 
 
   <form id="inscripcionForm" novalidate>
 
@@ -1274,7 +1274,7 @@ function saveLocalRecord(data) {
 
 /* ── Consulta Google Sheets vía Apps Script ── */
 async function checkDuplicateOnline(tipoDoc, numDoc) {
-  if (GOOGLE_SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') return null; // no configurado
+  if (GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec") return null; // no configurado
   try {
     const url = GOOGLE_SCRIPT_URL + '?action=check&tipo=' + encodeURIComponent(tipoDoc) + '&id=' + encodeURIComponent(numDoc);
     const res = await fetch(url, { method: 'GET' });
@@ -1289,7 +1289,7 @@ async function checkDuplicateOnline(tipoDoc, numDoc) {
 
 /* ── Envío a Google Sheets vía Apps Script ── */
 async function sendToGoogleSheets(data) {
-  if (GOOGLE_SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') return false;
+  if (GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec") return false;
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -1399,13 +1399,13 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
   let sent = false;
 
   // Enviar a Google Sheets si está configurado
-  if (GOOGLE_SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+  if (true /* Google Script configurado */) {
     sent = await sendToGoogleSheets(data);
     if (!sent) showBanner('⚠️ Google Sheets no disponible, intentando Power Automate...', 'loading');
   }
 
   // Enviar a Power Automate (Excel OneDrive) si está configurado
-  if (POWER_AUTOMATE_URL !== 'PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE') {
+  if (POWER_AUTOMATE_URL !== "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=axomYu4Yxt8o7jh_iP6Zqui2NCX1WIzjLD4NRHgoOII") {
     try {
       const res = await fetch(POWER_AUTOMATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       if(res.ok||res.status===202){ sent = true; }
@@ -1417,7 +1417,7 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
 
   btn.disabled = false;
 
-  if (sent || (GOOGLE_SCRIPT_URL==='PEGA_AQUI_TU_URL_DE_APPS_SCRIPT' && POWER_AUTOMATE_URL==='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE')) {
+  if (sent || (GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec" && POWER_AUTOMATE_URL === "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=axomYu4Yxt8o7jh_iP6Zqui2NCX1WIzjLD4NRHgoOII")) {
     showSuccessModal(data);
   } else {
     showBanner('❌ No se pudo enviar el registro. Verifica las URLs de Google Script o Power Automate.','error');
@@ -1425,5 +1425,117 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
 });
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════════════
+  INSTRUCCIONES: CONFIGURACIÓN GOOGLE SHEETS + APPS SCRIPT
+  ═══════════════════════════════════════════════════════════════════
+
+  PASO 1 — Crear la hoja de Google Sheets
+  ─────────────────────────────────────────
+  1. Ve a sheets.google.com y crea una hoja nueva.
+  2. Nómbrala: "Inscripciones Club Caribe 2026"
+  3. En la primera fila (fila 1) pon estos encabezados exactos (puedes copiar y pegar):
+     fecha_registro | tipo_documento | identificacion | nombres_apellidos | socio | codigo |
+     sexo | fecha_nacimiento | lugar_nacimiento | direccion | barrio | donde_estudia |
+     grado | jornada | otro_club | otro_club_cual | otro_club_tiempo |
+     rep1_parentesco | rep1_nombre | rep1_cedula | rep1_celular | rep1_telefono |
+     rep1_profesion | rep1_correo | rep2_parentesco | rep2_nombre | rep2_cedula |
+     rep2_celular | rep2_telefono | rep2_profesion | rep2_correo |
+     emergencia_nombre | emergencia_telefono | estatura | peso | tipo_sangre |
+     motivacion | alergia | alergia_cual | medicamento | medicamento_cual |
+     cirugia | cirugia_cual | lesiones | lesiones_cual | asma | enfermedades_actuales |
+     recomendacion_especialista | recomendacion_cual | perfil | posicion_juego |
+     categoria | año_categoria
+
+  PASO 2 — Crear el Apps Script
+  ───────────────────────────────
+  1. En la hoja de Sheets, ve al menú: Extensiones → Apps Script
+  2. Borra el código que aparece y pega este código completo:
+
+  ──────────────── CÓDIGO APPS SCRIPT ────────────────
+  const SHEET_NAME = 'Inscripciones Club Caribe 2026';
+
+  function doGet(e) {
+    const action = e.parameter.action;
+    if (action === 'check') {
+      return checkDuplicate(e.parameter.tipo, e.parameter.id);
+    }
+    return jsonResponse({ error: 'Acción no reconocida' });
+  }
+
+  function doPost(e) {
+    try {
+      const body = JSON.parse(e.postData.contents);
+      if (body.action === 'save') {
+        return saveRecord(body.data);
+      }
+      return jsonResponse({ error: 'Acción no reconocida' });
+    } catch(err) {
+      return jsonResponse({ success: false, error: err.message });
+    }
+  }
+
+  function checkDuplicate(tipoDoc, numDoc) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    const data  = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const tipoIdx = headers.indexOf('tipo_documento');
+    const idIdx   = headers.indexOf('identificacion');
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][tipoIdx] == tipoDoc && String(data[i][idIdx]) == String(numDoc)) {
+        const rowObj = {};
+        headers.forEach((h, j) => rowObj[h] = data[i][j]);
+        return jsonResponse({ exists: true, data: rowObj });
+      }
+    }
+    return jsonResponse({ exists: false, data: null });
+  }
+
+  function saveRecord(record) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const tipoIdx = headers.indexOf('tipo_documento');
+    const idIdx   = headers.indexOf('identificacion');
+    // Buscar si ya existe para actualizar
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][tipoIdx] == record['tipo_documento'] &&
+          String(data[i][idIdx]) == String(record['identificacion'])) {
+        const row = headers.map(h => record[h] !== undefined ? record[h] : '');
+        sheet.getRange(i + 1, 1, 1, row.length).setValues([row]);
+        return jsonResponse({ success: true, action: 'updated' });
+      }
+    }
+    // No existe: agregar nueva fila
+    const row = headers.map(h => record[h] !== undefined ? record[h] : '');
+    sheet.appendRow(row);
+    return jsonResponse({ success: true, action: 'inserted' });
+  }
+
+  function jsonResponse(obj) {
+    return ContentService
+      .createTextOutput(JSON.stringify(obj))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  ──────────────── FIN CÓDIGO APPS SCRIPT ────────────────
+
+  PASO 3 — Publicar como Web App
+  ────────────────────────────────
+  1. En Apps Script, haz clic en "Implementar" → "Nueva implementación"
+  2. Tipo: "Aplicación web"
+  3. Descripción: "Club Caribe API"
+  4. Ejecutar como: "Yo (tu cuenta Google)"
+  5. Quién tiene acceso: "Cualquier persona"  ← IMPORTANTE
+  6. Haz clic en "Implementar"
+  7. Copia la URL que aparece (empieza con https://script.google.com/macros/s/...)
+
+  PASO 4 — Pegar la URL en el formulario
+  ─────────────────────────────────────────
+  En este archivo, busca la línea:
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec";
+  y reemplaza el texto entre comillas con la URL del paso 3.
+
+  ¡Listo! Desde ese momento el formulario valida duplicados
+  contra Google Sheets en tiempo real desde cualquier dispositivo.
+═══════════════════════════════════════════════════════════════════ -->
 </body>
 </html>
