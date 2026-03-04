@@ -1,249 +1,309 @@
 /* ============================================================
-   Club Caribe Montería
-   app.js optimizado
+Club Caribe Montería
+app.js optimizado
 ============================================================ */
 
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec";
 
 const POWER_AUTOMATE_URL = "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke";
 
-
-/* ══════════════════════════════════════════════
-   VALIDACIÓN
-══════════════════════════════════════════════ */
-function validateForm() {
-  const errs = [];
-  if (!document.querySelector('[name="nombres_apellidos"]').value.trim()) { setError('f_nombres',true); errs.push('Nombre del pelotero'); }
-  if (!document.querySelector('[name="socio"]:checked')) errs.push('Socio del club');
-  if (!document.querySelector('[name="sexo"]:checked'))  errs.push('Sexo');
-  if (!document.querySelector('[name="fecha_nacimiento"]').value) { setError('f_fecha',true); errs.push('Fecha de nacimiento'); }
-  if (!document.querySelector('[name="direccion"]').value.trim()) { setError('f_direccion',true); errs.push('Dirección'); }
-  if (!document.querySelector('[name="rep1_parentesco"]').value)  { setError('f_rep1_parentesco',true); errs.push('Parentesco Rep. 1'); }
-  if (!document.querySelector('[name="rep1_nombre"]').value.trim()){ setError('f_rep1_nombre',true); errs.push('Nombre Rep. 1'); }
-  if (!document.querySelector('[name="rep1_cedula"]').value.trim()){ setError('f_rep1_cedula',true); errs.push('Cédula Rep. 1'); }
-  if (!document.querySelector('[name="rep1_celular"]').value.trim()){ setError('f_rep1_celular',true); errs.push('Celular Rep. 1'); }
-  if (document.querySelector('[name="rep2_nombre"]').value.trim() && !document.querySelector('[name="rep2_parentesco"]').value) { setError('f_rep2_parentesco',true); errs.push('Parentesco Rep. 2'); }
-  if (!document.querySelector('[name="emergencia_nombre"]').value.trim()) { setError('f_em_nombre',true); errs.push('Contacto emergencia'); }
-  if (!document.querySelector('[name="emergencia_telefono"]').value.trim()) { setError('f_em_tel',true); errs.push('Tel. emergencia'); }
-  return errs;
-}
-
-
 /* ============================================================
-   UTILIDADES
+VALIDACIÓN DEL FORMULARIO
 ============================================================ */
 
-function getFormData(form) {
+function validateForm(){
 
-  const formData = new FormData(form);
-  const obj = {};
+const errs = [];
 
-  formData.forEach((value, key) => {
-    obj[key] = value;
-  });
+const nombre = document.querySelector('[name="nombres_apellidos"]').value.trim();
+const tipo   = document.querySelector('[name="tipo_documento"]').value;
+const id     = document.querySelector('[name="identificacion"]').value.trim();
+const celular= document.querySelector('[name="rep1_celular"]').value;
+const nacimiento = document.querySelector('[name="fecha_nacimiento"]').value;
 
-  return obj;
+if(!nombre) errs.push("Nombre del pelotero");
+
+if(!tipo) errs.push("Tipo de documento");
+
+if(!id) errs.push("Número de identificación");
+
+if(!document.querySelector('[name="sexo"]:checked'))
+errs.push("Sexo");
+
+if(!document.querySelector('[name="socio"]:checked'))
+errs.push("Socio del club");
+
+if(!document.querySelector('[name="direccion"]').value.trim())
+errs.push("Dirección");
+
+if(!document.querySelector('[name="rep1_parentesco"]').value)
+errs.push("Parentesco representante 1");
+
+if(!document.querySelector('[name="rep1_nombre"]').value.trim())
+errs.push("Nombre representante 1");
+
+if(!document.querySelector('[name="rep1_cedula"]').value.trim())
+errs.push("Cédula representante 1");
+
+if(!/^[0-9]{10}$/.test(celular))
+errs.push("Celular representante inválido (10 dígitos)");
+
+if(!document.querySelector('[name="emergencia_nombre"]').value.trim())
+errs.push("Contacto de emergencia");
+
+if(!document.querySelector('[name="emergencia_telefono"]').value.trim())
+errs.push("Teléfono de emergencia");
+
+if(nacimiento){
+
+```
+const edad = new Date().getFullYear() - new Date(nacimiento).getFullYear();
+
+if(edad < 4 || edad > 18){
+  errs.push("Edad del jugador fuera de rango permitido (4-18 años)");
 }
-
-/* ============================================================
-   CONSULTAR DUPLICADO
-============================================================ */
-
-async function checkDuplicate(tipo, id) {
-
-  const params = new URLSearchParams({
-    action: "check",
-    tipo: tipo,
-    id: id
-  });
-
-  const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-
-  try {
-
-    const response = await fetch(url);
-    return await response.json();
-
-  } catch (error) {
-
-    console.error("Error verificando duplicado:", error);
-    return null;
-
-  }
+```
 
 }
 
+return errs;
+
+}
 
 /* ============================================================
-  HORARIO TIMESTAMP 
+UTILIDADES
 ============================================================ */
 
+function getFormData(form){
+
+const formData = new FormData(form);
+const obj = {};
+
+formData.forEach((value,key)=>{
+obj[key] = value;
+});
+
+return obj;
+
+}
+
+/* ============================================================
+TIMESTAMP DE REGISTRO
+============================================================ */
 
 function getTimestamp(){
 
-  const now = new Date();
+const now = new Date();
 
-  const fecha = now.toLocaleDateString("es-CO");
-  const hora  = now.toLocaleTimeString("es-CO");
+const fecha = now.toLocaleDateString("es-CO");
+const hora  = now.toLocaleTimeString("es-CO");
 
-  return `${fecha} ${hora}`;
+return `${fecha} ${hora}`;
 
 }
 
-
 /* ============================================================
-   GUARDAR EN GOOGLE SHEETS
+CONSULTAR DUPLICADO EN GOOGLE SHEETS
 ============================================================ */
 
-async function saveToGoogleSheets(data) {
+async function checkDuplicate(tipo,id){
 
-  const formData = new URLSearchParams();
+const params = new URLSearchParams({
+action:"check",
+tipo:tipo,
+id:id
+});
 
-  formData.append("action", "save");
-  formData.append("data", JSON.stringify(data));
+const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
 
-  try {
+try{
 
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      body: formData
-    });
+```
+const response = await fetch(url);
+return await response.json();
+```
 
-    return await response.json();
+}
+catch(error){
 
-  } catch (error) {
+```
+console.error("Error verificando duplicado:",error);
+return null;
+```
 
-    console.error("Error guardando en Sheets:", error);
-    return { success:false };
-
-  }
+}
 
 }
 
 /* ============================================================
-   ENVIAR A POWER AUTOMATE
+GUARDAR EN GOOGLE SHEETS
 ============================================================ */
 
-async function sendToPowerAutomate(data) {
+async function saveToGoogleSheets(data){
 
-  try {
+const formData = new URLSearchParams();
 
-    await fetch(POWER_AUTOMATE_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(data)
-    });
+formData.append("action","save");
+formData.append("data",JSON.stringify(data));
 
-  } catch(error) {
+try{
 
-    console.warn("Power Automate error:",error);
+```
+const response = await fetch(GOOGLE_SCRIPT_URL,{
+  method:"POST",
+  body:formData
+});
 
-  }
+return await response.json();
+```
+
+}
+catch(error){
+
+```
+console.error("Error guardando en Sheets:",error);
+return {success:false};
+```
+
+}
 
 }
 
 /* ============================================================
-   GENERAR PDF
+ENVIAR A POWER AUTOMATE
+============================================================ */
+
+async function sendToPowerAutomate(data){
+
+try{
+
+```
+await fetch(POWER_AUTOMATE_URL,{
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body:JSON.stringify(data)
+});
+```
+
+}
+catch(error){
+
+```
+console.warn("Power Automate error:",error);
+```
+
+}
+
+}
+
+/* ============================================================
+GENERAR PDF
 ============================================================ */
 
 function generatePDF(data){
 
-  doc.text(`Fecha registro: ${data.fecha_registro}`,20,30);
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
 
-  doc.setFontSize(16);
-  doc.text("Club Caribe Beisbol - Montería", 20,20);
+doc.setFontSize(16);
+doc.text("Club Caribe Béisbol - Montería",20,20);
 
-  doc.setFontSize(12);
+doc.setFontSize(12);
+doc.text(`Fecha registro: ${data.fecha_registro}`,20,30);
 
-  let y = 40;
+let y = 40;
 
-  for (const key in data){
+for(const key in data){
 
-    doc.text(`${key}: ${data[key]}`,20,y);
-    y += 8;
+```
+doc.text(`${key}: ${data[key]}`,20,y);
+y += 8;
+```
 
-  }
+}
 
-  doc.save("inscripcion.pdf");
+doc.save("inscripcion.pdf");
 
 }
 
 /* ============================================================
-   PROCESAR FORMULARIO
+PROCESAR FORMULARIO
 ============================================================ */
 
 async function handleSubmit(e){
 
-  e.preventDefault();
+e.preventDefault();
 
-  const errors = validateForm();
-  
-  if(errors.length){
+const errors = validateForm();
 
-    alert("Debe completar los siguientes campos:\n\n• " + errors.join("\n• "));
-    return;
+if(errors.length){
 
-  }
+```
+alert("Debe completar los siguientes campos:\n\n• " + errors.join("\n• "));
+return;
+```
 
-  const form = e.target;
+}
 
-  const data = getFormData(form);
-  data.fecha_registro = getTimestamp();
+const form = e.target;
 
-  const tipo = data.tipo_documento;
-  const id   = data.identificacion;
-  
+const data = getFormData(form);
 
-  /* ---- validar duplicado ---- */
+data.fecha_registro = getTimestamp();
 
-  const check = await checkDuplicate(tipo,id);
+const tipo = data.tipo_documento;
+const id   = data.identificacion;
 
-  if(check && check.exists){
+/* VALIDAR DUPLICADO */
 
-    alert("La persona ya está registrada");
-    return;
+const check = await checkDuplicate(tipo,id);
 
-  }
+if(check && check.exists){
 
-  /* ---- guardar ---- */
+```
+alert("La persona ya está registrada");
+return;
+```
 
-  const save = await saveToGoogleSheets(data);
+}
 
-  if(!save.success){
+/* GUARDAR */
 
-    alert("Error guardando información");
-    return;
+const save = await saveToGoogleSheets(data);
 
-  }
+if(!save.success){
 
-  /* ---- enviar a power automate ---- */
+```
+alert("Error guardando información");
+return;
+```
 
-  sendToPowerAutomate(data);
+}
 
-  /* ---- generar PDF ---- */
+/* POWER AUTOMATE */
 
-  generatePDF(data);
+sendToPowerAutomate(data);
 
-  alert("Registro guardado correctamente");
+/* PDF */
 
-  form.reset();
+generatePDF(data);
+
+alert("Registro guardado correctamente");
+
+form.reset();
 
 }
 
 /* ============================================================
-   INICIALIZACIÓN
+INICIALIZACIÓN
 ============================================================ */
 
 document.addEventListener("DOMContentLoaded",()=>{
 
-  const form = document.querySelector("#form-inscripcion");
+const form = document.querySelector("#form-inscripcion");
 
-  if(form){
-
-    form.addEventListener("submit",handleSubmit);
-
-  }
+if(form){
+form.addEventListener("submit",handleSubmit);
+}
 
 });
