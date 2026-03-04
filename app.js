@@ -139,28 +139,16 @@ async function checkDuplicate(tipo,id){
 
 async function saveToSheets(data){
 
-  const formData = new URLSearchParams();
+  const params = new URLSearchParams();
 
-  formData.append("action","save");
-  formData.append("data",JSON.stringify(data));
+  params.append("action","save");
+  params.append("data",JSON.stringify(data));
 
-  try{
+  const url = GOOGLE_SCRIPT_URL + "?" + params.toString();
 
-    const response = await fetch(GOOGLE_SCRIPT_URL,{
-      method:"POST",
-      body:formData
-    });
+  const response = await fetch(url);
 
-    return await response.json();
-
-  }
-  catch(error){
-
-    console.error("Error guardando en Sheets",error);
-
-    return {success:false};
-
-  }
+  return await response.json();
 
 }
 
