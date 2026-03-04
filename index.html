@@ -484,6 +484,14 @@
 
 <main>
 
+  <!-- SETUP BOX -->
+  <div class="setup-box">
+    <strong>⚙️ Configuración OneDrive</strong> — Para enviar datos automáticamente, usa <strong>Microsoft Power Automate</strong>:<br>
+    1. Ve a <a href="https://make.powerautomate.com" target="_blank">make.powerautomate.com</a> → Crear flujo → <strong>"Cuando se recibe una solicitud HTTP"</strong><br>
+    2. Agrega la acción <strong>"Agregar fila a tabla Excel"</strong> apuntando a un archivo <code>.xlsx</code> en tu OneDrive.<br>
+    3. Copia la URL HTTP POST y pégala en la variable <code>POWER_AUTOMATE_URL</code> del código.
+  </div>
+
   <form id="inscripcionForm" novalidate>
 
     <!-- ═══ 1. DATOS DEL PELOTERO ═══ -->
@@ -1266,7 +1274,7 @@ function saveLocalRecord(data) {
 
 /* ── Consulta Google Sheets vía Apps Script ── */
 async function checkDuplicateOnline(tipoDoc, numDoc) {
-  if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec') return null; // no configurado
+  if (GOOGLE_SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') return null; // no configurado
   try {
     const url = GOOGLE_SCRIPT_URL + '?action=check&tipo=' + encodeURIComponent(tipoDoc) + '&id=' + encodeURIComponent(numDoc);
     const res = await fetch(url, { method: 'GET' });
@@ -1281,7 +1289,7 @@ async function checkDuplicateOnline(tipoDoc, numDoc) {
 
 /* ── Envío a Google Sheets vía Apps Script ── */
 async function sendToGoogleSheets(data) {
-  if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec') return false;
+  if (GOOGLE_SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') return false;
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -1391,7 +1399,7 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
   let sent = false;
 
   // Enviar a Google Sheets si está configurado
-  if (GOOGLE_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec') {
+  if (GOOGLE_SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
     sent = await sendToGoogleSheets(data);
     if (!sent) showBanner('⚠️ Google Sheets no disponible, intentando Power Automate...', 'loading');
   }
@@ -1409,7 +1417,7 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
 
   btn.disabled = false;
 
-  if (sent || (GOOGLE_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec' && POWER_AUTOMATE_URL==='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE')) {
+  if (sent || (GOOGLE_SCRIPT_URL==='PEGA_AQUI_TU_URL_DE_APPS_SCRIPT' && POWER_AUTOMATE_URL==='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE')) {
     showSuccessModal(data);
   } else {
     showBanner('❌ No se pudo enviar el registro. Verifica las URLs de Google Script o Power Automate.','error');
