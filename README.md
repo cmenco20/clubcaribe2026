@@ -197,4 +197,16 @@ Cada vez que modifiques el código en Apps Script:
 
 ---
 
+
+  <!-- SETUP BOX -->
+  <div class="setup-box">
+    <strong>⚙️ Configuración OneDrive</strong> — Para enviar datos automáticamente, usa <strong>Microsoft Power Automate</strong>:<br>
+    1. Ve a <a href="https://make.powerautomate.com" target="_blank">make.powerautomate.com</a> → Crear flujo → <strong>"Cuando se recibe una solicitud HTTP"</strong><br>
+    2. Agrega la acción <strong>"Agregar fila a tabla Excel"</strong> apuntando a un archivo <code>.xlsx</code> en tu OneDrive.<br>
+    3. Copia la URL HTTP POST y pégala en la variable <code>POWER_AUTOMATE_URL</code> del código.
+  </div> 
+
+
+
+
 *Club CARIBE Montería — Sistema de Inscripciones 2026*
