@@ -284,7 +284,7 @@ function saveLocalRecord(data) {
 
 /* ── Consulta Google Sheets vía Apps Script ── */
 async function checkDuplicateOnline(tipoDoc, numDoc) {
-  if (GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec") return null; // no configurado
+  if (!GOOGLE_SCRIPT_URL) return null;
   try {
     const url = GOOGLE_SCRIPT_URL + '?action=check&tipo=' + encodeURIComponent(tipoDoc) + '&id=' + encodeURIComponent(numDoc);
     const res = await fetch(url, { method: 'GET' });
@@ -299,7 +299,7 @@ async function checkDuplicateOnline(tipoDoc, numDoc) {
 
 /* ── Envío a Google Sheets vía Apps Script ── */
 async function sendToGoogleSheets(data) {
-  if (GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec") return false;
+  if (!GOOGLE_SCRIPT_URL) return false;
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -427,7 +427,7 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
 
   btn.disabled = false;
 
-  if (sent || (GOOGLE_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyq7FMvEThptqsjAbXX6pXyg27G97yhS0hjPrlroCB4t7JqNg19_l1u4OnGInKYOX0xRw/exec" && POWER_AUTOMATE_URL === "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=axomYu4Yxt8o7jh_iP6Zqui2NCX1WIzjLD4NRHgoOII")) {
+  if (sent) {
     showSuccessModal(data);
   } else {
     showBanner('❌ No se pudo enviar el registro. Verifica las URLs de Google Script o Power Automate.','error');
