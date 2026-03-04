@@ -4,8 +4,7 @@
    Dependencias: jsPDF (cargado en index.html)
 ══════════════════════════════════════════════════════════════ */
 
-const POWER_AUTOMATE_URL = "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=axomYu4Yxt8o7jh_iP6Zqui2NCX1WIzjLD4NRHgoOII";
-
+const POWER_AUTOMATE_URL = "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=axomYu4Yxt8o7jh_iP6Zqui2NCX1WIzjLD4NRHgoOII"
 /* ─── Google Apps Script (base de datos central para validación) ───
    Pega aquí la URL de tu Web App de Google Apps Script.
    Instrucciones paso a paso al final de este archivo en los comentarios.
