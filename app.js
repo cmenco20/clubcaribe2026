@@ -178,6 +178,15 @@ async function handleSubmit(e){
 
   e.preventDefault();
 
+  const errors = validateForm();
+  
+  if(errors.length){
+
+    alert("Debe completar los siguientes campos:\n\n• " + errors.join("\n• "));
+    return;
+
+  }
+
   const form = e.target;
 
   const data = getFormData(form);
