@@ -296,7 +296,7 @@ async function checkDuplicateOnline(tipoDoc, numDoc) {
   }
 }
 
-/* ── Envío a Google Sheets vía Apps Script ── */
+/* ── Envío a Google Sheets vía Apps Script ── 
 async function sendToGoogleSheets(data) {
   if (!GOOGLE_SCRIPT_URL) return false;
   try {
@@ -311,7 +311,26 @@ async function sendToGoogleSheets(data) {
     console.warn('Error enviando a Google Sheets:', e);
     return false;
   }
+}*/
+
+
+// Reemplaza la función sendToGoogleSheets actual por esta
+async function sendToGoogleSheets(data) {
+  if (!GOOGLE_SCRIPT_URL) return false;
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }, // enviar JSON limpio
+      body: JSON.stringify(data) // <-- enviamos el objeto de registro directamente
+    });
+    const json = await res.json();
+    return json.success === true;
+  } catch(e) {
+    console.warn('Error enviando a Google Sheets:', e);
+    return false;
+  }
 }
+
 
 /* ── Carga datos de un registro existente al formulario ── */
 function loadDataIntoForm(data) {
@@ -413,12 +432,26 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
     if (!sent) showBanner('⚠️ Google Sheets no disponible, intentando Power Automate...', 'loading');
   }
 
-  // Enviar a Power Automate (Excel OneDrive) si está configurado
+  /*// Enviar a Power Automate (Excel OneDrive) si está configurado
   if (POWER_AUTOMATE_URL !== "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=axomYu4Yxt8o7jh_iP6Zqui2NCX1WIzjLD4NRHgoOII") {
     try {
       const res = await fetch(POWER_AUTOMATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       if(res.ok||res.status===202){ sent = true; }
       else throw new Error('HTTP '+res.status);
+    } catch(err) {
+      console.error('Power Automate error:', err);
+    }
+  }*/
+
+    // Reemplaza la comprobación actual por algo más robusto:
+  if (POWER_AUTOMATE_URL && POWER_AUTOMATE_URL.length > 10) {
+    try {
+      const res = await fetch(POWER_AUTOMATE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok || res.status === 202) { sent = true; }
     } catch(err) {
       console.error('Power Automate error:', err);
     }
