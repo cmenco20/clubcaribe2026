@@ -1,6 +1,6 @@
 
 /* ============================================================
-   Club CARIBE Montería — app.js mejorado
+   Club CARIBE Montería — app.js corregido
    Validaciones completas + Google Sheets + Power Automate + PDF
 ============================================================ */
 
@@ -70,7 +70,7 @@ function validateForm(){
 
 
 /* ============================================================
-   UTILIDADES
+   OBTENER DATOS DEL FORMULARIO
 ============================================================ */
 
 function getFormData(form){
@@ -258,41 +258,29 @@ async function handleSubmit(e){
   const id   = data.identificacion;
 
 
-  /* VALIDAR DUPLICADO */
-
   const duplicado = await checkDuplicate(tipo,id);
 
   if(duplicado && duplicado.exists){
 
     alert("Este jugador ya se encuentra registrado");
-
     return;
 
   }
 
-
-  /* GUARDAR */
 
   const save = await saveToSheets(data);
 
   if(!save.success){
 
     alert("Error guardando la información en la base de datos");
-
     return;
 
   }
 
 
-  /* POWER AUTOMATE */
-
   sendToPowerAutomate(data);
 
-
-  /* PDF */
-
   generatePDF(data);
-
 
   alert("Registro guardado correctamente");
 
@@ -302,15 +290,18 @@ async function handleSubmit(e){
 
 
 /* ============================================================
-   INICIALIZACIÓN
+   INICIALIZACIÓN CORREGIDA
 ============================================================ */
 
 document.addEventListener("DOMContentLoaded",()=>{
 
-  const form = document.querySelector("form");
+  const form = document.getElementById("formInscripcion");
 
-  if(form){
-    form.addEventListener("submit",handleSubmit);
+  if(!form){
+    console.error("Formulario no encontrado. Verifique que el form tenga id='formInscripcion'");
+    return;
   }
+
+  form.addEventListener("submit",handleSubmit);
 
 });
