@@ -7,6 +7,28 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq7FMvEThptq
 
 const POWER_AUTOMATE_URL = "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/80dc9e0f901146269d6c5a40c9bb0931/triggers/manual/paths/invoke";
 
+
+/* ══════════════════════════════════════════════
+   VALIDACIÓN
+══════════════════════════════════════════════ */
+function validateForm() {
+  const errs = [];
+  if (!document.querySelector('[name="nombres_apellidos"]').value.trim()) { setError('f_nombres',true); errs.push('Nombre del pelotero'); }
+  if (!document.querySelector('[name="socio"]:checked')) errs.push('Socio del club');
+  if (!document.querySelector('[name="sexo"]:checked'))  errs.push('Sexo');
+  if (!document.querySelector('[name="fecha_nacimiento"]').value) { setError('f_fecha',true); errs.push('Fecha de nacimiento'); }
+  if (!document.querySelector('[name="direccion"]').value.trim()) { setError('f_direccion',true); errs.push('Dirección'); }
+  if (!document.querySelector('[name="rep1_parentesco"]').value)  { setError('f_rep1_parentesco',true); errs.push('Parentesco Rep. 1'); }
+  if (!document.querySelector('[name="rep1_nombre"]').value.trim()){ setError('f_rep1_nombre',true); errs.push('Nombre Rep. 1'); }
+  if (!document.querySelector('[name="rep1_cedula"]').value.trim()){ setError('f_rep1_cedula',true); errs.push('Cédula Rep. 1'); }
+  if (!document.querySelector('[name="rep1_celular"]').value.trim()){ setError('f_rep1_celular',true); errs.push('Celular Rep. 1'); }
+  if (document.querySelector('[name="rep2_nombre"]').value.trim() && !document.querySelector('[name="rep2_parentesco"]').value) { setError('f_rep2_parentesco',true); errs.push('Parentesco Rep. 2'); }
+  if (!document.querySelector('[name="emergencia_nombre"]').value.trim()) { setError('f_em_nombre',true); errs.push('Contacto emergencia'); }
+  if (!document.querySelector('[name="emergencia_telefono"]').value.trim()) { setError('f_em_tel',true); errs.push('Tel. emergencia'); }
+  return errs;
+}
+
+
 /* ============================================================
    UTILIDADES
 ============================================================ */
