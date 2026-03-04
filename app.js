@@ -313,20 +313,27 @@ async function sendToGoogleSheets(data) {
   }
 }*/
 
-
-// Reemplaza la función sendToGoogleSheets actual por esta
 async function sendToGoogleSheets(data) {
   if (!GOOGLE_SCRIPT_URL) return false;
+
   try {
+    const formData = new URLSearchParams();
+    
+    // Convertimos el objeto a string JSON
+    formData.append("data", JSON.stringify(data));
+
     const res = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }, // enviar JSON limpio
-      body: JSON.stringify(data) // <-- enviamos el objeto de registro directamente
+      method: "POST",
+      body: formData
+      // ❌ NO poner headers
     });
-    const json = await res.json();
-    return json.success === true;
-  } catch(e) {
-    console.warn('Error enviando a Google Sheets:', e);
+
+    const text = await res.text();
+    console.log("Respuesta Sheets:", text);
+
+    return true;
+  } catch (error) {
+    console.error("Error enviando a Sheets:", error);
     return false;
   }
 }
