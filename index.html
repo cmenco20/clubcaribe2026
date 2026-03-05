@@ -1220,6 +1220,8 @@ document.getElementById('btn-close-modal').addEventListener('click', () => {
 function showUpdateModal(index, tipoDoc, numDoc) {
   document.getElementById('update-doc-info').textContent = tipoDoc + ' · ' + numDoc;
   window._pendingUpdateIndex = index;
+  window._pendingTipoDoc = tipoDoc;
+  window._pendingNumDoc = numDoc;
   document.getElementById('updateModal').style.display = 'flex';
 }
 
@@ -1227,14 +1229,25 @@ document.getElementById('btn-update-yes').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
   if (window._pendingUpdateIndex !== undefined) {
     loadRegistrationIntoForm(window._pendingUpdateIndex);
-    showBanner('📝 Datos cargados. Modifique los campos necesarios y envíe nuevamente para actualizar.', 'loading');
-    window.scrollTo({top: 0, behavior: 'smooth'});
   }
+  // Garantizar que tipo_documento e identificacion queden siempre llenos
+  if (window._pendingTipoDoc) {
+    const radios = document.querySelectorAll('[name="tipo_documento"]');
+    radios.forEach(r => { r.checked = (r.value === window._pendingTipoDoc); });
+  }
+  if (window._pendingNumDoc) {
+    const idEl = document.querySelector('[name="identificacion"]');
+    if (idEl) idEl.value = window._pendingNumDoc;
+  }
+  document.getElementById('submitBtn').innerHTML = '✏️ &nbsp;Actualizar Inscripción';
+  showBanner('📝 Datos cargados. Modifique los campos necesarios y envíe nuevamente para actualizar.', 'loading');
+  window.scrollTo({top: 0, behavior: 'smooth'});
 });
 
 document.getElementById('btn-update-no').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
   window._pendingUpdateIndex = undefined;
+  document.getElementById('submitBtn').innerHTML = '⚾ &nbsp;Enviar Inscripción';
 });
 
 /* ══════════════════════════════════════════════
@@ -1320,6 +1333,11 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
   const data = {};
   new FormData(this).forEach((v,k)=>data[k]=v);
   data.fecha_registro = new Date().toLocaleString('es-CO',{timeZone:'America/Bogota'});
+  data.es_actualizacion = (currentUpdateIdx !== -1) ? 'Si' : 'No';
+
+  // Asegurar que tipo_documento e identificacion siempre se incluyan
+  if (!data.tipo_documento && window._pendingTipoDoc) data.tipo_documento = window._pendingTipoDoc;
+  if (!data.identificacion && window._pendingNumDoc) data.identificacion = window._pendingNumDoc;
 
   // Guardar / actualizar en localStorage para panel admin
   const registros = JSON.parse(localStorage.getItem('caribe_registros')||'[]');
@@ -1343,7 +1361,10 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
   showBanner('⏳ Enviando inscripción...','loading');
   try{
     const res = await fetch(POWER_AUTOMATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    if(res.ok||res.status===202){ showSuccessModal(data); }
+    if(res.ok||res.status===202){
+    document.getElementById('submitBtn').innerHTML = '⚾ &nbsp;Enviar Inscripción';
+    showSuccessModal(data);
+  }
     else throw new Error('HTTP '+res.status);
   }catch(err){
     console.error(err);
