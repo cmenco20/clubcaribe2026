@@ -1256,11 +1256,6 @@ document.getElementById('btn-update-no').addEventListener('click', () => {
 /* ══════════════════════════════════════════════
    VALIDACIÓN DE DUPLICADOS
 ══════════════════════════════════════════════ */
-function findDuplicateIndex(tipoDoc, numDoc) {
-  const registros = JSON.parse(localStorage.getItem('caribe_registros')||'[]');
-  return registros.findIndex(r => r.tipo_documento === tipoDoc && r.identificacion === numDoc);
-}
-
 async function checkDuplicateRemoto(tipoDoc, numDoc) {
   try {
     const res = await fetch(POWER_AUTOMATE_VERIFICAR_URL, {
@@ -1268,36 +1263,18 @@ async function checkDuplicateRemoto(tipoDoc, numDoc) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tipo_documento: tipoDoc, identificacion: numDoc })
     });
-    if (!res.ok) return findDuplicateIndex(tipoDoc, numDoc) !== -1;
+    if (!res.ok) return false;
     const json = await res.json();
     return json.existe === true;
   } catch(err) {
     console.warn('⚠️ No se pudo verificar duplicado en servidor:', err);
-    return findDuplicateIndex(tipoDoc, numDoc) !== -1;
+    return false;
   }
 }
 
-function loadRegistrationIntoForm(index) {
-  const registros = JSON.parse(localStorage.getItem('caribe_registros')||'[]');
-  const data = registros[index];
-  if (!data) return;
-  Object.keys(data).forEach(key => {
-    const inputs = document.querySelectorAll('[name="'+key+'"]');
-    inputs.forEach(el => {
-      if (el.type === 'radio') {
-        if (el.value === data[key]) el.checked = true;
-      } else {
-        el.value = data[key] || '';
-      }
-    });
-  });
-  // Trigger toggleOtro for parentesco
-  const p1 = document.getElementById('rep1_parentesco');
-  if (p1) { p1.value = data.rep1_parentesco||''; toggleOtro(1); }
-  const p2 = document.getElementById('rep2_parentesco');
-  if (p2) { p2.value = data.rep2_parentesco||''; toggleOtro(2); }
-  // Store update index so submit handler knows
-  document.getElementById('inscripcionForm').dataset.updateIndex = index;
+function loadRegistrationIntoForm() {
+  // Solo marca el formulario como modo actualización
+  document.getElementById('inscripcionForm').dataset.updateIndex = 0;
 }
 
 document.getElementById('inscripcionForm').addEventListener('submit', async function(e) {
@@ -1314,8 +1291,7 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
     showBanner('🔍 Verificando si el registro ya existe...', 'loading');
     const yaExiste = await checkDuplicateRemoto(tipoDoc, numDoc);
     if (yaExiste) {
-      const localIdx = findDuplicateIndex(tipoDoc, numDoc);
-      showUpdateModal(localIdx !== -1 ? localIdx : 0, tipoDoc, numDoc);
+      showUpdateModal(0, tipoDoc, numDoc);
       return;
     }
   }
@@ -1339,16 +1315,7 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
   if (!data.tipo_documento && window._pendingTipoDoc) data.tipo_documento = window._pendingTipoDoc;
   if (!data.identificacion && window._pendingNumDoc) data.identificacion = window._pendingNumDoc;
 
-  // Guardar / actualizar en localStorage para panel admin
-  const registros = JSON.parse(localStorage.getItem('caribe_registros')||'[]');
-  const saveIdx = (currentUpdateIdx !== -1) ? currentUpdateIdx : -1;
-  const dupIdx  = findDuplicateIndex(data.tipo_documento, data.identificacion);
-  if (dupIdx !== -1) {
-    registros[dupIdx] = data; // update existing
-  } else {
-    registros.push(data);     // new record
-  }
-  localStorage.setItem('caribe_registros', JSON.stringify(registros));
+  // Validación y guardado solo via Power Automate
 
   if(POWER_AUTOMATE_URL==='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE'){
     console.log('📋 Datos:', data);
