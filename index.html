@@ -1217,20 +1217,42 @@ document.getElementById('btn-close-modal').addEventListener('click', () => {
 });
 
 /* ══ Update Modal ══ */
-function showUpdateModal(index, tipoDoc, numDoc) {
+function showUpdateModal(index, tipoDoc, numDoc, datosExcel) {
   document.getElementById('update-doc-info').textContent = tipoDoc + ' · ' + numDoc;
   window._pendingUpdateIndex = index;
   window._pendingTipoDoc = tipoDoc;
   window._pendingNumDoc = numDoc;
+  window._pendingDatosExcel = datosExcel || null;
   document.getElementById('updateModal').style.display = 'flex';
 }
 
 document.getElementById('btn-update-yes').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
-  if (window._pendingUpdateIndex !== undefined) {
-    loadRegistrationIntoForm(window._pendingUpdateIndex);
+
+  const datos = window._pendingDatosExcel;
+
+  if (datos) {
+    // Llenar formulario con datos del Excel
+    Object.keys(datos).forEach(key => {
+      // Saltar campos internos de Excel
+      if (key.startsWith('@') || key === 'ItemInternalId') return;
+      const inputs = document.querySelectorAll('[name="' + key + '"]');
+      inputs.forEach(el => {
+        if (el.type === 'radio') {
+          el.checked = (el.value === datos[key]);
+        } else {
+          el.value = datos[key] || '';
+        }
+      });
+    });
+    // Disparar toggles de parentesco
+    const p1 = document.getElementById('rep1_parentesco');
+    if (p1) { toggleOtro(1); }
+    const p2 = document.getElementById('rep2_parentesco');
+    if (p2) { toggleOtro(2); }
   }
-  // Garantizar que tipo_documento e identificacion queden siempre llenos
+
+  // Garantizar tipo_documento e identificacion
   if (window._pendingTipoDoc) {
     const radios = document.querySelectorAll('[name="tipo_documento"]');
     radios.forEach(r => { r.checked = (r.value === window._pendingTipoDoc); });
@@ -1239,8 +1261,11 @@ document.getElementById('btn-update-yes').addEventListener('click', () => {
     const idEl = document.querySelector('[name="identificacion"]');
     if (idEl) idEl.value = window._pendingNumDoc;
   }
+
+  // Marcar modo actualización
+  document.getElementById('inscripcionForm').dataset.modoActualizacion = '1';
   document.getElementById('submitBtn').innerHTML = '✏️ &nbsp;Actualizar Inscripción';
-  showBanner('📝 Datos cargados. Modifique los campos necesarios y envíe nuevamente para actualizar.', 'loading');
+  showBanner('📝 Datos cargados desde Excel. Modifique lo necesario y envíe para actualizar.', 'loading');
   window.scrollTo({top: 0, behavior: 'smooth'});
 });
 
@@ -1256,9 +1281,7 @@ document.getElementById('btn-update-no').addEventListener('click', () => {
 /* ══════════════════════════════════════════════
    VALIDACIÓN DE DUPLICADOS
 ══════════════════════════════════════════════ */
-function loadRegistrationIntoForm() {
-  document.getElementById('inscripcionForm').dataset.modoActualizacion = '1';
-}
+// loadRegistrationIntoForm: datos cargados directamente desde Excel via Power Automate
 
 document.getElementById('inscripcionForm').addEventListener('submit', async function(e) {
   e.preventDefault();
@@ -1300,9 +1323,9 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
     const json = await res.json().catch(() => ({}));
 
     if (json.existe === true && json.actualizado === false) {
-      // Duplicado detectado — mostrar modal de actualización
+      // Duplicado detectado — mostrar modal y cargar datos del Excel
       btn.disabled = false;
-      showUpdateModal(0, data.tipo_documento || tipoDoc, data.identificacion || numDoc);
+      showUpdateModal(0, data.tipo_documento || tipoDoc, data.identificacion || numDoc, json.datos || null);
       return;
     }
 
