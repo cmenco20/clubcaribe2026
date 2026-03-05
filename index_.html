@@ -1320,10 +1320,7 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
       body: JSON.stringify(data)
     });
 
-    const rawText = await res.text();
-    console.log('RAW respuesta:', rawText);
-    let json = {};
-    try { json = JSON.parse(rawText); } catch(e) { console.error('JSON parse error:', e); }
+    const json = await res.json().catch(() => ({}));
 
     if (json.existe === true && json.actualizado === false) {
       // Duplicado detectado — mostrar modal y cargar datos del Excel
