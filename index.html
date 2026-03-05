@@ -1233,15 +1233,18 @@ document.getElementById('btn-update-yes').addEventListener('click', () => {
 
   if (datos) {
     // Llenar formulario con datos del Excel
-    Object.keys(datos).forEach(key => {
+    // Los campos de Excel pueden tener espacios al inicio — se limpian con trim()
+    Object.keys(datos).forEach(rawKey => {
+      const key = rawKey.trim();
       // Saltar campos internos de Excel
       if (key.startsWith('@') || key === 'ItemInternalId') return;
+      const valor = typeof datos[rawKey] === 'string' ? datos[rawKey].trim() : datos[rawKey];
       const inputs = document.querySelectorAll('[name="' + key + '"]');
       inputs.forEach(el => {
         if (el.type === 'radio') {
-          el.checked = (el.value === datos[key]);
+          el.checked = (el.value === valor);
         } else {
-          el.value = datos[key] || '';
+          el.value = valor || '';
         }
       });
     });
@@ -1321,15 +1324,12 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
     });
 
     const rawText = await res.text();
-    console.log('RAW respuesta:', rawText);
     let json = {};
     try { json = JSON.parse(rawText); } catch(e) { console.error('JSON parse error:', e); }
 
     if (json.existe === true && json.actualizado === false) {
       // Duplicado detectado — mostrar modal y cargar datos del Excel
       btn.disabled = false;
-      console.log('Respuesta Power Automate:', JSON.stringify(json));
-      console.log('Datos recibidos:', JSON.stringify(json.datos));
       showUpdateModal(0, data.tipo_documento || tipoDoc, data.identificacion || numDoc, json.datos || null);
       return;
     }
