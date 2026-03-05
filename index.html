@@ -1325,6 +1325,8 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
     if (json.existe === true && json.actualizado === false) {
       // Duplicado detectado — mostrar modal y cargar datos del Excel
       btn.disabled = false;
+      console.log('Respuesta Power Automate:', JSON.stringify(json));
+      console.log('Datos recibidos:', JSON.stringify(json.datos));
       showUpdateModal(0, data.tipo_documento || tipoDoc, data.identificacion || numDoc, json.datos || null);
       return;
     }
