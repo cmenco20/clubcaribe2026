@@ -286,6 +286,8 @@
   }
   .yesno-row .yn-label { flex:1; min-width:140px; font-size:13.5px; font-weight:500; color:var(--gray-700); }
   .yesno-row .opts { display:flex; gap:8px; }
+  .yesno-row.field-error { border-color:var(--red) !important; background:#fff5f5; }
+  .yesno-row.field-error .yn-label { color:var(--red); }
 
   /* ══════════════════════════════════════
      DIVIDER & SUB-LABEL

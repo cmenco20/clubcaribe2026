@@ -57,24 +57,32 @@ function validateForm() {
   if (!document.querySelector('[name="emergencia_telefono"]').value.trim()) { setError('f_em_tel',true); errs.push('Tel. emergencia'); }
   if (!document.querySelector('[name="categoria"]:checked')) { setError('f_categoria',true); errs.push('Categoría'); }
 
-  // Antecedentes médicos — ¿Cuál? obligatorio si marcó Sí
+  // Antecedentes médicos — Sí/No obligatorio + ¿Cuál? obligatorio si marcó Sí
   const medicos = [
-    { radio:'alergia',                    cual:'alergia_cual',       id:'f_alergia_cual',       label:'¿Cuál alergia?' },
-    { radio:'medicamento',                cual:'medicamento_cual',   id:'f_medicamento_cual',   label:'¿Cuál medicamento?' },
-    { radio:'cirugia',                    cual:'cirugia_cual',       id:'f_cirugia_cual',       label:'¿Cuál intervención?' },
-    { radio:'lesiones',                   cual:'lesiones_cual',      id:'f_lesiones_cual',      label:'¿Cuál lesión?' },
-    { radio:'asma',                       cual:'enfermedades_actuales', id:'f_enfermedades_cual', label:'Enfermedades actuales' },
-    { radio:'recomendacion_especialista', cual:'recomendacion_cual', id:'f_recomendacion_cual', label:'¿Cuál recomendación?' },
+    { radio:'alergia',                    cual:'alergia_cual',          idYN:'f_yn_alergia',       idCual:'f_alergia_cual',       labelYN:'Alergia (Sí/No)',         labelCual:'¿Cuál alergia?' },
+    { radio:'medicamento',                cual:'medicamento_cual',       idYN:'f_yn_medicamento',   idCual:'f_medicamento_cual',   labelYN:'Medicamento (Sí/No)',      labelCual:'¿Cuál medicamento?' },
+    { radio:'cirugia',                    cual:'cirugia_cual',           idYN:'f_yn_cirugia',       idCual:'f_cirugia_cual',       labelYN:'Cirugía (Sí/No)',          labelCual:'¿Cuál intervención?' },
+    { radio:'lesiones',                   cual:'lesiones_cual',          idYN:'f_yn_lesiones',      idCual:'f_lesiones_cual',      labelYN:'Lesiones (Sí/No)',         labelCual:'¿Cuál lesión?' },
+    { radio:'asma',                       cual:'enfermedades_actuales',  idYN:'f_yn_asma',          idCual:'f_enfermedades_cual',  labelYN:'Asma (Sí/No)',             labelCual:'Enfermedades actuales' },
+    { radio:'recomendacion_especialista', cual:'recomendacion_cual',     idYN:'f_yn_recomendacion', idCual:'f_recomendacion_cual', labelYN:'Rec. especialista (Sí/No)',labelCual:'¿Cuál recomendación?' },
   ];
   medicos.forEach(m => {
     const seleccionado = document.querySelector('[name="'+m.radio+'"]:checked');
+    // Validar que se haya seleccionado Sí o No
+    if (!seleccionado) {
+      setError(m.idYN, true);
+      errs.push(m.labelYN);
+    } else {
+      setError(m.idYN, false);
+    }
+    // Validar ¿Cuál? si marcó Sí
     const esSi = seleccionado && seleccionado.value === 'Si';
     const cual = document.querySelector('[name="'+m.cual+'"]');
     if (esSi && cual && !cual.value.trim()) {
-      setError(m.id, true);
-      errs.push(m.label);
+      setError(m.idCual, true);
+      errs.push(m.labelCual);
     } else {
-      setError(m.id, false);
+      setError(m.idCual, false);
     }
   });
 
@@ -513,19 +521,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Mostrar/ocultar * en campos ¿Cuál? según Si/No médico
   const medFields = [
-    { radio:'alergia',                    req:'req_alergia',        cual:'alergia_cual' },
-    { radio:'medicamento',                req:'req_medicamento',    cual:'medicamento_cual' },
-    { radio:'cirugia',                    req:'req_cirugia',        cual:'cirugia_cual' },
-    { radio:'lesiones',                   req:'req_lesiones',       cual:'lesiones_cual' },
-    { radio:'asma',                       req:'req_asma',           cual:'enfermedades_actuales' },
-    { radio:'recomendacion_especialista', req:'req_recomendacion',  cual:'recomendacion_cual' },
+    { radio:'alergia',                    req:'req_alergia',        cual:'alergia_cual',        idYN:'f_yn_alergia' },
+    { radio:'medicamento',                req:'req_medicamento',    cual:'medicamento_cual',     idYN:'f_yn_medicamento' },
+    { radio:'cirugia',                    req:'req_cirugia',        cual:'cirugia_cual',         idYN:'f_yn_cirugia' },
+    { radio:'lesiones',                   req:'req_lesiones',       cual:'lesiones_cual',        idYN:'f_yn_lesiones' },
+    { radio:'asma',                       req:'req_asma',           cual:'enfermedades_actuales',idYN:'f_yn_asma' },
+    { radio:'recomendacion_especialista', req:'req_recomendacion',  cual:'recomendacion_cual',   idYN:'f_yn_recomendacion' },
   ];
   medFields.forEach(m => {
     document.querySelectorAll('[name="'+m.radio+'"]').forEach(radio => {
       radio.addEventListener('change', () => {
         const esSi = document.querySelector('[name="'+m.radio+'"]:checked')?.value === 'Si';
+        // Mostrar/ocultar * en ¿Cuál?
         const reqEl = document.getElementById(m.req);
         if (reqEl) reqEl.style.display = esSi ? 'inline' : 'none';
+        // Quitar error del yesno-row al seleccionar cualquier opción
+        const ynDiv = document.getElementById(m.idYN);
+        if (ynDiv) ynDiv.classList.remove('field-error');
       });
     });
   });
