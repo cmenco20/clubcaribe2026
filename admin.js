@@ -5,10 +5,11 @@
 
 // ── URL del flujo de Power Automate para LISTAR registros ──
 // Crea un nuevo flujo: Trigger HTTP → "Enumerar las filas de una tabla" → Respuesta con body(value)
-const PA_LISTAR_URL = 'https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b2e8b902c13247c189ba5ca06229c726/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ofcWfmPhhwalhBntZJxojji4jF6KeUoqddIdtqS7168';
+// URL cargada desde config.js (archivo local, NO subir a GitHub)
+const PA_LISTAR_URL = (typeof POWER_AUTOMATE_LISTAR_URL !== 'undefined') ? POWER_AUTOMATE_LISTAR_URL : '';
 
 // ── URL del flujo unificado (inscripción/actualización) ya existente ──
-const PA_REGISTRO_URL = "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/af0ee7edcc7042f5881d4e0b8e376e4c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=rmE7DqkZkiYNmdvaP2xKdZFnkhjjp2GH2rsXpK8q8lc";
+const PA_REGISTRO_URL = (typeof POWER_AUTOMATE_URL !== 'undefined') ? POWER_AUTOMATE_URL : '';
 
 /* ══ Estado ══ */
 let registros      = [];
