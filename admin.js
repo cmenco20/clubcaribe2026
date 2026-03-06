@@ -21,6 +21,22 @@ let sortDir        = 'asc';
 const $  = id => document.getElementById(id);
 const fmt = v  => (v && String(v).trim()) ? String(v).trim() : '—';
 
+function fmtFecha(v) {
+  if (!v || String(v).trim() === '') return '—';
+  const s = String(v).trim();
+  // Número serial de Excel (ej: 43149)
+  if (/^\d{4,6}$/.test(s) && parseInt(s) > 30000) {
+    const fecha = new Date(new Date(1899,11,30).getTime() + parseInt(s) * 86400000);
+    return fecha.toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
+  }
+  // yyyy-MM-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y,m,d] = s.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  return s;
+}
+
 function showBanner(msg, type) {
   const b = $('banner');
   b.textContent = msg;
@@ -108,7 +124,7 @@ function renderTabla() {
       <td class="bold">${fmt(r.codigo)}</td>
       <td class="bold">${fmt(r.nombres_apellidos)}</td>
       <td>${fmt(r.tipo_documento)} ${fmt(r.identificacion)}</td>
-      <td>${fmt(r.fecha_nacimiento)}</td>
+      <td>${fmtFecha(r.fecha_nacimiento)}</td>
       <td><span class="badge badge-green">${fmt(r.categoria)}</span></td>
       <td>${fmt(r.rep1_celular)}</td>
       <td>${fmt(r.fecha_registro)}</td>
@@ -185,7 +201,7 @@ function verDetalle(idx) {
   $('modal-content').innerHTML =
     sec('Identificación', [
       ['Código',r.codigo],['Socio',r.socio],['Tipo Doc.',r.tipo_documento],['Identificación',r.identificacion],
-      ['Nombres y Apellidos',r.nombres_apellidos],['Sexo',r.sexo],['Fecha Nacimiento',r.fecha_nacimiento],
+      ['Nombres y Apellidos',r.nombres_apellidos],['Sexo',r.sexo],['Fecha Nacimiento', fmtFecha(r.fecha_nacimiento)],
       ['Lugar Nacimiento',r.lugar_nacimiento],['Dirección',r.direccion],['Barrio',r.barrio],
       ['Jornada',r.jornada],['¿Dónde estudia?',r.donde_estudia],['Grado',r.grado],
     ]) +

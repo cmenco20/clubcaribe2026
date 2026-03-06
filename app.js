@@ -243,10 +243,12 @@ function showSuccessModal(data) {
   document.getElementById('successModal').style.display = 'flex';
 }
 
-document.getElementById('btn-download-pdf').addEventListener('click', () => {
+const _btnDlPdf = document.getElementById('btn-download-pdf');
+if(_btnDlPdf) _btnDlPdf.addEventListener('click', () => {
   if(window._lastData) generatePDF(window._lastData, false);
 });
-document.getElementById('btn-close-modal').addEventListener('click', () => {
+const _btnCloseModal = document.getElementById('btn-close-modal');
+if(_btnCloseModal) _btnCloseModal.addEventListener('click', () => {
   document.getElementById('successModal').style.display = 'none';
   resetForm();
 });
@@ -261,7 +263,8 @@ function showUpdateModal(index, tipoDoc, numDoc, datosExcel) {
   document.getElementById('updateModal').style.display = 'flex';
 }
 
-document.getElementById('btn-update-yes').addEventListener('click', () => {
+const _btnUpdateYes = document.getElementById('btn-update-yes');
+if(_btnUpdateYes) _btnUpdateYes.addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
 
   const datos = window._pendingDatosExcel;
@@ -327,7 +330,8 @@ document.getElementById('btn-update-yes').addEventListener('click', () => {
   window.scrollTo({top: 0, behavior: 'smooth'});
 });
 
-document.getElementById('btn-update-no').addEventListener('click', () => {
+const _btnUpdateNo = document.getElementById('btn-update-no');
+if(_btnUpdateNo) _btnUpdateNo.addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
   window._pendingUpdateIndex = undefined;
   document.getElementById('submitBtn').innerHTML = '⚾ &nbsp;Enviar Inscripción';
@@ -341,7 +345,8 @@ document.getElementById('btn-update-no').addEventListener('click', () => {
 ══════════════════════════════════════════════ */
 // loadRegistrationIntoForm: datos cargados directamente desde Excel via Power Automate
 
-document.getElementById('inscripcionForm').addEventListener('submit', async function(e) {
+const _inscripcionForm = document.getElementById('inscripcionForm');
+if(_inscripcionForm) _inscripcionForm.addEventListener('submit', async function(e) {
   e.preventDefault();
 
   const tipoDocEl = document.querySelector('[name="tipo_documento"]:checked');
@@ -409,6 +414,9 @@ document.getElementById('inscripcionForm').addEventListener('submit', async func
 });
 // Asignar código al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
+  // Solo ejecutar lógica del formulario si estamos en index.html
+  if (!document.getElementById('inscripcionForm')) return;
+
   asignarCodigo();
 
   // Mostrar/ocultar * en campos ¿Cuál? según Si/No médico
