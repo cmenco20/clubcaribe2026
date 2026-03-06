@@ -1,0 +1,36 @@
+name: Deploy Club Caribe
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Inyecta las URLs directamente en index.html antes de la etiqueta </head>
+      - name: Inyectar URLs en index.html
+        run: |
+          sed -i 's|</head>|<script>const POWER_AUTOMATE_URL="${{ secrets.POWER_AUTOMATE_URL }}";const POWER_AUTOMATE_LISTAR_URL="${{ secrets.POWER_AUTOMATE_LISTAR_URL }}";</script></head>|' index.html
+
+      # Inyecta las URLs directamente en admin.html antes de la etiqueta </head>
+      - name: Inyectar URLs en admin.html
+        run: |
+          sed -i 's|</head>|<script>const POWER_AUTOMATE_URL="${{ secrets.POWER_AUTOMATE_URL }}";const POWER_AUTOMATE_LISTAR_URL="${{ secrets.POWER_AUTOMATE_LISTAR_URL }}";</script></head>|' admin.html
+
+      # Publica los archivos modificados en una rama gh-pages separada
+      - name: Publicar en gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          exclude_assets: '.github,.gitignore,README.md'
