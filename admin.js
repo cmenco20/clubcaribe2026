@@ -24,15 +24,21 @@ const fmt = v  => (v && String(v).trim()) ? String(v).trim() : '—';
 function fmtFecha(v) {
   if (!v || String(v).trim() === '') return '—';
   const s = String(v).trim();
-  // Número serial de Excel (ej: 43149)
-  if (/^\d{4,6}$/.test(s) && parseInt(s) > 30000) {
-    const fecha = new Date(new Date(1899,11,30).getTime() + parseInt(s) * 86400000);
-    return fecha.toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const n = parseInt(s);
+  // Número serial de Excel: solo dígitos y valor típico de fechas Excel (>= 30000)
+  if (s === String(n) && n >= 30000) {
+    // Usar UTC para evitar desfase por zona horaria (Colombia UTC-5)
+    const msUTC = Date.UTC(1899, 11, 30) + n * 86400000;
+    const fecha = new Date(msUTC);
+    const d = String(fecha.getUTCDate()).padStart(2,'0');
+    const m = String(fecha.getUTCMonth()+1).padStart(2,'0');
+    const y = fecha.getUTCFullYear();
+    return d+'/'+m+'/'+y;
   }
   // yyyy-MM-dd
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+  if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
     const [y,m,d] = s.split('-');
-    return `${d}/${m}/${y}`;
+    return d+'/'+m+'/'+y;
   }
   return s;
 }

@@ -90,6 +90,28 @@ function resetForm() {
 }
 
 /* ══════════════════════════════════════════════
+   HELPER — Convertir fecha serial de Excel a dd/mm/yyyy
+══════════════════════════════════════════════ */
+function excelSerialToDisplay(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  const n = parseInt(s);
+  if (s === String(n) && n >= 30000) {
+    const ms = Date.UTC(1899, 11, 30) + n * 86400000;
+    const fd = new Date(ms);
+    return String(fd.getUTCDate()).padStart(2,'0') + '/' +
+           String(fd.getUTCMonth()+1).padStart(2,'0') + '/' +
+           fd.getUTCFullYear();
+  }
+  // yyyy-MM-dd → dd/mm/yyyy
+  if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [y,m,d] = s.split('-');
+    return d+'/'+m+'/'+y;
+  }
+  return s;
+}
+
+/* ══════════════════════════════════════════════
    GENERADOR DE PDF  — Una sola página + marca de agua
 ══════════════════════════════════════════════ */
 function generatePDF(data, returnBlobUrl = false) {
@@ -169,7 +191,7 @@ function generatePDF(data, returnBlobUrl = false) {
   secHeader('1. Datos de Identificación del Pelotero');
   r4('Socio del Club',data.socio,'Código',data.codigo,'Tipo Documento',data.tipo_documento,'Identificación',data.identificacion);
   r1('Nombres y Apellidos',data.nombres_apellidos);
-  r3('Sexo',data.sexo,'Fecha de Nacimiento',data.fecha_nacimiento,'Lugar de Nacimiento',data.lugar_nacimiento);
+  r3('Sexo',data.sexo,'Fecha de Nacimiento',excelSerialToDisplay(data.fecha_nacimiento)||data.fecha_nacimiento,'Lugar de Nacimiento',data.lugar_nacimiento);
   r3('Dirección',data.direccion,'Barrio',data.barrio,'Jornada',data.jornada);
   r3('¿Dónde estudia?',data.donde_estudia,'Grado',data.grado,'¿Otro club?',data.otro_club);
   r2('¿Cuál club anterior?',data.otro_club_cual,'Tiempo en ese club',data.otro_club_tiempo);
@@ -285,10 +307,13 @@ if(_btnUpdateYes) _btnUpdateYes.addEventListener('click', () => {
           // Excel guarda fechas como número serial — convertir a yyyy-MM-dd
           let fechaVal = valor;
           if (valor && /^\d+$/.test(String(valor).trim())) {
-            // Número serial de Excel: días desde 1900-01-01 (con corrección de bug 1900)
-            const excelEpoch = new Date(1899, 11, 30);
-            const fecha = new Date(excelEpoch.getTime() + parseInt(valor) * 86400000);
-            fechaVal = fecha.toISOString().split('T')[0];
+            // Número serial de Excel — usar UTC para evitar desfase por zona horaria
+            const msUTC = Date.UTC(1899, 11, 30) + parseInt(valor) * 86400000;
+            const fd = new Date(msUTC);
+            const yy = fd.getUTCFullYear();
+            const mm = String(fd.getUTCMonth()+1).padStart(2,'0');
+            const dd = String(fd.getUTCDate()).padStart(2,'0');
+            fechaVal = yy+'-'+mm+'-'+dd;
           } else if (valor && valor.includes('/')) {
             // Formato d/m/yyyy o m/d/yyyy
             const partes = valor.split('/');
