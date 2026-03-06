@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Administrador — Club CARIBE Montería</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- SheetJS para exportar Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Reutilizar generatePDF del formulario -->
+<script src="config.js"></script>
+<script src="app.js" defer></script>
+<script src="admin.js" defer></script>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <img src="logo.png" alt="Club Caribe" onerror="this.style.display='none'">
+    </div>
+    <div class="header-text">
+      <h1>Club Caribe <span class="sub">Montería · Panel Administrador</span></h1>
+    </div>
+    <div class="header-badge">🛡️ Admin 2026</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Banner -->
+  <div id="banner" class="banner"></div>
+
+  <!-- ═══ STATS ═══ -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-num" id="stat-total">—</span>
+      <span class="stat-label">Total Inscritos</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="stat-socios">—</span>
+      <span class="stat-label">Socios del Club</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" style="font-size:20px;padding-top:6px" id="stat-cat">—</span>
+      <span class="stat-label">Categoría más grande</span>
+    </div>
+    <div class="stat-card red">
+      <span class="stat-num">⚾</span>
+      <span class="stat-label">Temporada 2026</span>
+    </div>
+  </div>
+
+  <!-- ═══ TOOLBAR ═══ -->
+  <div class="toolbar">
+    <span class="toolbar-title">📋 Registros de Inscripción</span>
+
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" id="search" placeholder="Buscar por nombre, documento, código...">
+    </div>
+
+    <select class="filter-select" id="filter-cat">
+      <option value="">Todas las categorías</option>
+    </select>
+
+    <button class="btn btn-outline" onclick="cargarRegistros()">🔄 Actualizar</button>
+    <button class="btn btn-outline" onclick="imprimirSeleccionado()">🖨️ Imprimir PDF</button>
+    <button class="btn btn-green" onclick="exportarExcel()">📊 Exportar Excel</button>
+  </div>
+
+  <!-- ═══ TABLA ═══ -->
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-col="codigo">Código <span class="sort-icon">↕</span></th>
+            <th data-col="nombres_apellidos">Nombres y Apellidos <span class="sort-icon">↕</span></th>
+            <th data-col="identificacion">Documento <span class="sort-icon">↕</span></th>
+            <th data-col="fecha_nacimiento">Fecha Nac. <span class="sort-icon">↕</span></th>
+            <th data-col="categoria">Categoría <span class="sort-icon">↕</span></th>
+            <th data-col="rep1_celular">Contacto <span class="sort-icon">↕</span></th>
+            <th data-col="fecha_registro">Registro <span class="sort-icon">↕</span></th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8">
+            <div class="state-box">
+              <div class="spinner"></div>
+              <p>Cargando registros...</p>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      <span id="footer-count">—</span>
+      <span style="color:var(--gray-300)">Haz clic en una fila para seleccionarla · 👁️ Ver detalle · 🖨️ Imprimir PDF</span>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ MODAL DETALLE ═══ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📋 Detalle del Pelotero</h3>
+      <button class="modal-close" onclick="cerrarModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-content">
+      <!-- Contenido dinámico -->
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="cerrarModal()">Cerrar</button>
+      <button class="btn btn-green" onclick="imprimirSeleccionado(); cerrarModal()">🖨️ Imprimir PDF</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
