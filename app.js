@@ -90,6 +90,22 @@ function resetForm() {
 }
 
 /* ══════════════════════════════════════════════
+   CÓDIGO CONSECUTIVO
+══════════════════════════════════════════════ */
+function generarCodigoConsecutivo() {
+  const anio = new Date().getFullYear();
+  const key  = 'caribe_codigo_counter_' + anio;
+  let contador = parseInt(sessionStorage.getItem(key) || '0') + 1;
+  sessionStorage.setItem(key, contador);
+  return anio + '-' + String(contador).padStart(3, '0');
+}
+
+function asignarCodigo() {
+  const campo = document.getElementById('codigoPelotero');
+  if (campo && !campo.value) campo.value = generarCodigoConsecutivo();
+}
+
+/* ══════════════════════════════════════════════
    HELPER — Convertir fecha serial de Excel a dd/mm/yyyy
 ══════════════════════════════════════════════ */
 function excelSerialToDisplay(v) {
