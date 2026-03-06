@@ -85,25 +85,53 @@ function resetForm() {
   document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
   delete document.getElementById('inscripcionForm').dataset.modoActualizacion;
   document.getElementById('submitBtn').innerHTML = '⚾ &nbsp;Enviar Inscripción';
-  // Generar nuevo código para el próximo registro
-  const campo = document.getElementById('codigoPelotero');
-  if (campo) campo.value = generarCodigoConsecutivo();
+  // Generar nuevo código consultando Excel
+  asignarCodigo();
 }
 
 /* ══════════════════════════════════════════════
    CÓDIGO CONSECUTIVO
 ══════════════════════════════════════════════ */
-function generarCodigoConsecutivo() {
-  const anio = new Date().getFullYear();
-  const key  = 'caribe_codigo_counter_' + anio;
-  let contador = parseInt(sessionStorage.getItem(key) || '0') + 1;
-  sessionStorage.setItem(key, contador);
-  return anio + '-' + String(contador).padStart(3, '0');
-}
-
-function asignarCodigo() {
+async function asignarCodigo() {
   const campo = document.getElementById('codigoPelotero');
-  if (campo && !campo.value) campo.value = generarCodigoConsecutivo();
+  if (!campo) return;
+
+  campo.value = '⏳ Cargando...';
+  campo.style.color = '#8d98a2';
+
+  const anio = new Date().getFullYear();
+
+  try {
+    // Consultar el flujo de listar para obtener todos los registros
+    const PA_LISTAR = "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b2e8b902c13247c189ba5ca06229c726/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ofcWfmPhhwalhBntZJxojji4jF6KeUoqddIdtqS7168";
+    const res  = await fetch(PA_LISTAR, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+    const json = await res.json().catch(() => ({}));
+    const filas = json.registros || json.value || [];
+
+    // Obtener todos los códigos del año actual y encontrar el mayor número
+    let maxNum = 0;
+    filas.forEach(r => {
+      const cod = (r.codigo || r[' codigo'] || '').toString().trim();
+      // Formato esperado: 2026-001 o 001-2026
+      const match = cod.match(/(\d{4})-(\d+)|(\d+)-(\d{4})/);
+      if (match) {
+        const codAnio = parseInt(match[1] || match[4]);
+        const num     = parseInt(match[2] || match[3]);
+        if (codAnio === anio && num > maxNum) maxNum = num;
+      }
+    });
+
+    const siguiente = maxNum + 1;
+    campo.value = anio + '-' + String(siguiente).padStart(3, '0');
+    campo.style.color = '#1a6b30';
+
+  } catch(e) {
+    // Si falla la consulta, usar timestamp como fallback seguro
+    const fallback = anio + '-' + String(Date.now()).slice(-3);
+    campo.value = fallback;
+    campo.style.color = '#1a6b30';
+    console.warn('No se pudo consultar el consecutivo, usando fallback:', fallback);
+  }
 }
 
 /* ══════════════════════════════════════════════
