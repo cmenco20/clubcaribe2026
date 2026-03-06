@@ -97,15 +97,22 @@ function excelSerialToDisplay(v) {
   const s = String(v).trim();
   const n = parseInt(s);
   if (s === String(n) && n >= 30000) {
-    const ms = Date.UTC(1899, 11, 30) + n * 86400000;
-    const fd = new Date(ms);
-    return String(fd.getUTCDate()).padStart(2,'0') + '/' +
-           String(fd.getUTCMonth()+1).padStart(2,'0') + '/' +
-           fd.getUTCFullYear();
+    // Corregir bug año bisiesto Excel 1900
+    let serial = n >= 60 ? n - 1 : n;
+    let dias = serial, y = 1900;
+    while (true) {
+      const da = ((y%4===0&&y%100!==0)||y%400===0) ? 366 : 365;
+      if (dias <= da) break;
+      dias -= da; y++;
+    }
+    const dm = [0,31,((y%4===0&&y%100!==0)||y%400===0)?29:28,31,30,31,30,31,31,30,31,30,31];
+    let m;
+    for (m=1; m<=12; m++) { if (dias<=dm[m]) break; dias-=dm[m]; }
+    return String(dias).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+y;
   }
   // yyyy-MM-dd → dd/mm/yyyy
-  if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [y,m,d] = s.split('-');
+  if (/\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y,m,d] = s.split('T')[0].split('-');
     return d+'/'+m+'/'+y;
   }
   return s;
@@ -307,13 +314,17 @@ if(_btnUpdateYes) _btnUpdateYes.addEventListener('click', () => {
           // Excel guarda fechas como número serial — convertir a yyyy-MM-dd
           let fechaVal = valor;
           if (valor && /^\d+$/.test(String(valor).trim())) {
-            // Número serial de Excel — usar UTC para evitar desfase por zona horaria
-            const msUTC = Date.UTC(1899, 11, 30) + parseInt(valor) * 86400000;
-            const fd = new Date(msUTC);
-            const yy = fd.getUTCFullYear();
-            const mm = String(fd.getUTCMonth()+1).padStart(2,'0');
-            const dd = String(fd.getUTCDate()).padStart(2,'0');
-            fechaVal = yy+'-'+mm+'-'+dd;
+            // Corregir bug año bisiesto Excel 1900
+            let serial = parseInt(valor);
+            if (serial >= 60) serial--;
+            let dias = serial, yy = 1900;
+            while (true) {
+              const da = ((yy%4===0&&yy%100!==0)||yy%400===0)?366:365;
+              if (dias<=da) break; dias-=da; yy++;
+            }
+            const dm2 = [0,31,((yy%4===0&&yy%100!==0)||yy%400===0)?29:28,31,30,31,30,31,31,30,31,30,31];
+            let mm2; for (mm2=1;mm2<=12;mm2++){if(dias<=dm2[mm2])break;dias-=dm2[mm2];}
+            fechaVal = yy+'-'+String(mm2).padStart(2,'0')+'-'+String(dias).padStart(2,'0');
           } else if (valor && valor.includes('/')) {
             // Formato d/m/yyyy o m/d/yyyy
             const partes = valor.split('/');

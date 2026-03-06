@@ -21,23 +21,37 @@ let sortDir        = 'asc';
 const $  = id => document.getElementById(id);
 const fmt = v  => (v && String(v).trim()) ? String(v).trim() : '—';
 
+function serialExcelAFecha(n) {
+  // Corregir bug de año bisiesto de Excel (trata 1900 como bisiesto incorrectamente)
+  if (n >= 60) n--;
+  let dias = n;
+  let y = 1900;
+  while (true) {
+    const diasAnio = ((y%4===0&&y%100!==0)||y%400===0) ? 366 : 365;
+    if (dias <= diasAnio) break;
+    dias -= diasAnio; y++;
+  }
+  const diasMes = [0,31,((y%4===0&&y%100!==0)||y%400===0)?29:28,31,30,31,30,31,31,30,31,30,31];
+  let m;
+  for (m = 1; m <= 12; m++) {
+    if (dias <= diasMes[m]) break;
+    dias -= diasMes[m];
+  }
+  const d = dias;
+  return String(d).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+y;
+}
+
 function fmtFecha(v) {
   if (!v || String(v).trim() === '') return '—';
   const s = String(v).trim();
   const n = parseInt(s);
-  // Número serial de Excel: solo dígitos y valor típico de fechas Excel (>= 30000)
+  // Serial Excel (solo número >= 30000)
   if (s === String(n) && n >= 30000) {
-    // Usar UTC para evitar desfase por zona horaria (Colombia UTC-5)
-    const msUTC = Date.UTC(1899, 11, 30) + n * 86400000;
-    const fecha = new Date(msUTC);
-    const d = String(fecha.getUTCDate()).padStart(2,'0');
-    const m = String(fecha.getUTCMonth()+1).padStart(2,'0');
-    const y = fecha.getUTCFullYear();
-    return d+'/'+m+'/'+y;
+    return serialExcelAFecha(n);
   }
   // yyyy-MM-dd
-  if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [y,m,d] = s.split('-');
+  if (/\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y,m,d] = s.split('T')[0].split('-');
     return d+'/'+m+'/'+y;
   }
   return s;
@@ -239,7 +253,17 @@ function imprimirPDF(idx) {
   const r = filtrados[idx !== undefined ? idx : filtrados.indexOf(seleccionado)];
   if (!r) return;
   if (typeof generatePDF === 'function') {
-    generatePDF(r, false);
+    // Normalizar fecha_nacimiento antes de enviar al PDF
+    const dataNorm = Object.assign({}, r);
+    const fn = String(r.fecha_nacimiento || '').trim();
+    const n = parseInt(fn);
+    if (fn === String(n) && n >= 30000) {
+      dataNorm.fecha_nacimiento = serialExcelAFecha(n);
+    } else if (/\d{4}-\d{2}-\d{2}/.test(fn)) {
+      const [y,m,d] = fn.split('T')[0].split('-');
+      dataNorm.fecha_nacimiento = d+'/'+m+'/'+y;
+    }
+    generatePDF(dataNorm, false);
   } else {
     alert('El generador de PDF no está disponible. Asegúrate de incluir app.js en la página.');
   }
