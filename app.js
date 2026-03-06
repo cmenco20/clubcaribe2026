@@ -105,7 +105,10 @@ async function asignarCodigo() {
     // Consultar el flujo de listar para obtener todos los registros
     const PA_LISTAR = "https://defaultb468904add5149289435b961241d32.77.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b2e8b902c13247c189ba5ca06229c726/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ofcWfmPhhwalhBntZJxojji4jF6KeUoqddIdtqS7168";
     const res  = await fetch(PA_LISTAR, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
-    const json = await res.json().catch(() => ({}));
+    const rawText = await res.text();
+    console.log('LISTAR status:', res.status, 'body:', rawText.substring(0, 300));
+    let json = {};
+    try { json = JSON.parse(rawText); } catch(e) { console.error('Parse error:', e); }
     const filas = json.registros || json.value || [];
 
     // Obtener todos los códigos — el campo puede venir con espacio " codigo"
@@ -132,9 +135,9 @@ async function asignarCodigo() {
     campo.style.color = '#1a6b30';
 
   } catch(e) {
-    campo.value = '⚠️ Sin conexión';
+    campo.value = '⚠️ Error';
     campo.style.color = '#c0281e';
-    console.warn('No se pudo consultar el flujo de listado:', e);
+    console.error('ERROR consultando flujo listar:', e.message || e);
   }
 }
 
