@@ -108,29 +108,33 @@ async function asignarCodigo() {
     const json = await res.json().catch(() => ({}));
     const filas = json.registros || json.value || [];
 
-    // Obtener todos los códigos del año actual y encontrar el mayor número
+    // Obtener todos los códigos — el campo puede venir con espacio " codigo"
     let maxNum = 0;
+    console.log('Registros recibidos:', filas.length, filas[0] ? Object.keys(filas[0]) : []);
     filas.forEach(r => {
-      const cod = (r.codigo || r[' codigo'] || '').toString().trim();
-      // Formato esperado: 2026-001 o 001-2026
-      const match = cod.match(/(\d{4})-(\d+)|(\d+)-(\d{4})/);
+      // Buscar la clave 'codigo' con o sin espacios
+      const codigoKey = Object.keys(r).find(k => k.trim().toLowerCase() === 'codigo');
+      const cod = codigoKey ? (r[codigoKey] || '').toString().trim() : '';
+      if (filas.indexOf(r) === 0) console.log('codigoKey encontrado:', JSON.stringify(codigoKey), '→ valor:', cod);
+      if (!cod) return;
+      // Formato: 2026-001 o 001-2026
+      const match = cod.match(/(\d{3,})-(\d{4})|(\d{4})-(\d{3,})/);
       if (match) {
-        const codAnio = parseInt(match[1] || match[4]);
-        const num     = parseInt(match[2] || match[3]);
+        const num     = parseInt(match[1] || match[4]);
+        const codAnio = parseInt(match[2] || match[3]);
         if (codAnio === anio && num > maxNum) maxNum = num;
       }
     });
+    console.log('Último código encontrado #' + maxNum);
 
     const siguiente = maxNum + 1;
     campo.value = anio + '-' + String(siguiente).padStart(3, '0');
     campo.style.color = '#1a6b30';
 
   } catch(e) {
-    // Si falla la consulta, usar timestamp como fallback seguro
-    const fallback = anio + '-' + String(Date.now()).slice(-3);
-    campo.value = fallback;
-    campo.style.color = '#1a6b30';
-    console.warn('No se pudo consultar el consecutivo, usando fallback:', fallback);
+    campo.value = '⚠️ Sin conexión';
+    campo.style.color = '#c0281e';
+    console.warn('No se pudo consultar el flujo de listado:', e);
   }
 }
 
