@@ -215,6 +215,10 @@
   }
   .field label .req { color:var(--red); margin-left:2px; }
 
+  /* Mayúsculas visuales en campos de texto (excepto email y fecha) */
+  input[type="text"]:not([name*="correo"]),
+  textarea { text-transform: uppercase; }
+
   input[type="text"], input[type="email"], input[type="tel"],
   input[type="date"], input[type="number"], select, textarea {
     width:100%;

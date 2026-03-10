@@ -472,6 +472,18 @@ if(_inscripcionForm) _inscripcionForm.addEventListener('submit', async function(
   if (!data.tipo_documento && window._pendingTipoDoc) data.tipo_documento = window._pendingTipoDoc;
   if (!data.identificacion && window._pendingNumDoc)  data.identificacion  = window._pendingNumDoc;
 
+  // Convertir todos los campos de texto a MAYÚSCULAS antes de enviar al Excel
+  // Excepciones: emails (contienen @), fechas (contienen /), campos numéricos, campos de control
+  const NO_UPPERCASE = ['rep1_correo','rep2_correo','es_actualizacion','codigo','fecha_registro',
+                        'fecha_nacimiento','año_categoria'];
+  Object.keys(data).forEach(k => {
+    if (NO_UPPERCASE.includes(k)) return;
+    const v = data[k];
+    if (typeof v === 'string' && v.trim() !== '' && !v.includes('@') && !v.includes('/')) {
+      data[k] = v.toUpperCase();
+    }
+  });
+
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   showBanner('⏳ Procesando inscripción...', 'loading');
@@ -518,6 +530,21 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!document.getElementById('inscripcionForm')) return;
 
   asignarCodigo();
+
+  // Convertir a mayúsculas en tiempo real mientras el usuario escribe
+  // Se aplica a todos los inputs de texto excepto email, fecha y campos de control
+  document.querySelectorAll('input[type="text"], textarea').forEach(inp => {
+    const name = inp.getAttribute('name') || '';
+    const isEmail = name.includes('correo') || inp.type === 'email';
+    const isDate  = inp.type === 'date' || name.includes('fecha') || name.includes('año');
+    if (!isEmail && !isDate) {
+      inp.addEventListener('input', function() {
+        const pos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+      });
+    }
+  });
 
   // Mostrar/ocultar * en campos ¿Cuál? según Si/No médico
   const medFields = [
