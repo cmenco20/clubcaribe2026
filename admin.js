@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════
    CLUB CARIBE — Panel Administrador
-   Requiere: jsPDF, SheetJS (xlsx)
+   Requiere: jsPDF, SheetJS (xlsx) .
 ══════════════════════════════════════════════ */
 
 // ── URL del flujo de Power Automate para LISTAR registros ──
